@@ -27,24 +27,24 @@
 
 #include <llvm/Pass.h>
 
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/GetElementPtrTypeIterator.h>	//for gep iterator
-#include <llvm/IR/GlobalVariable.h>	// for GlobalVariable
 #include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/DataLayout.h>
+#include <llvm/IR/DebugInfo.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/GetElementPtrTypeIterator.h> //for gep iterator
+#include <llvm/IR/GetElementPtrTypeIterator.h>
+#include <llvm/IR/GlobalVariable.h> // for GlobalVariable
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/InstIterator.h>
+#include <llvm/IR/Instructions.h>
 #include <llvm/IR/IntrinsicInst.h>
+#include <llvm/IR/Intrinsics.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Metadata.h>
-#include <llvm/IR/DataLayout.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/DebugInfo.h>
-#include <llvm/IR/InstIterator.h>
-#include <llvm/IR/GetElementPtrTypeIterator.h>
-#include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Statepoint.h>
-#include <llvm/IR/Intrinsics.h>
 
-#include <llvm/Analysis/MemoryLocation.h>
 #include <llvm/Analysis/DominanceFrontier.h>
+#include <llvm/Analysis/MemoryLocation.h>
 #include <llvm/Analysis/PostDominators.h>
 #include <llvm/Analysis/ScalarEvolution.h>
 #include <llvm/Analysis/ScalarEvolutionExpressions.h>
@@ -53,14 +53,15 @@
 
 #include <llvm/Support/SourceMgr.h>
 
-#include <llvm/Bitcode/BitcodeWriter.h>		// for WriteBitcodeToFile
-#include <llvm/Bitcode/BitcodeReader.h>     /// for isBitcode
-#include <llvm/IRReader/IRReader.h>	// IR reader for bit file
-#include <llvm/IR/InstVisitor.h>	// for instruction visitor
-#include <llvm/IR/InstIterator.h>	// for inst iteration
+#include <llvm/Bitcode/BitcodeReader.h> /// for isBitcode
+#include <llvm/Bitcode/BitcodeWriter.h> // for WriteBitcodeToFile
+#include <llvm/IR/InstIterator.h>       // for inst iteration
+#include <llvm/IR/InstVisitor.h>        // for instruction visitor
+#include <llvm/IRReader/IRReader.h>     // IR reader for bit file
 
 #include <llvm/BinaryFormat/Dwarf.h> // for dwarf tags
 
+#include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Demangle/Demangle.h>
 
@@ -72,11 +73,7 @@ typedef llvm::GlobalObject GlobalObject;
 typedef llvm::Use Use;
 typedef llvm::ModulePass ModulePass;
 typedef llvm::IRBuilder<> IRBuilder;
-#if LLVM_VERSION_MAJOR >= 12
-typedef llvm::UnifyFunctionExitNodesLegacyPass UnifyFunctionExitNodes;
-#else
-typedef llvm::UnifyFunctionExitNodes UnifyFunctionExitNodes;
-#endif
+typedef llvm::UnifyFunctionExitNodesPass UnifyFunctionExitNodes;
 
 /// LLVM Basic classes
 typedef llvm::Value Value;
@@ -134,7 +131,8 @@ typedef llvm::DominatorTree DominatorTree;
 typedef llvm::DomTreeNode DomTreeNode;
 typedef llvm::DominanceFrontier DominanceFrontier;
 typedef llvm::PostDominatorTree PostDominatorTree;
-typedef llvm::DominanceFrontierBase<llvm::BasicBlock, false> DominanceFrontierBase;
+typedef llvm::DominanceFrontierBase<llvm::BasicBlock, false>
+    DominanceFrontierBase;
 
 /// LLVM Loop
 typedef llvm::Loop Loop;
@@ -157,7 +155,7 @@ typedef llvm::CallBrInst CallBrInst;
 typedef llvm::ReturnInst ReturnInst;
 typedef llvm::CastInst CastInst;
 typedef llvm::CmpInst CmpInst;
-typedef llvm::ExtractValueInst  ExtractValueInst;
+typedef llvm::ExtractValueInst ExtractValueInst;
 typedef llvm::ExtractElementInst ExtractElementInst;
 typedef llvm::GetElementPtrInst GetElementPtrInst;
 typedef llvm::InvokeInst InvokeInst;
@@ -277,4 +275,4 @@ typedef llvm::succ_const_iterator succ_const_iterator;
 #endif
 } // End namespace SVF
 
-#endif  // SVF_FE_BASIC_TYPES_H
+#endif // SVF_FE_BASIC_TYPES_H

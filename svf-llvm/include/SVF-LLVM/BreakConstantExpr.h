@@ -15,7 +15,13 @@
 #ifndef BREAKCONSTANTGEPS_H
 #define BREAKCONSTANTGEPS_H
 
+#include "BasicTypes.h"
 #include "SVFIR/SVFValue.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Pass.h"
+#include "llvm/Passes/PassBuilder.h"
 
 namespace SVF
 {
@@ -41,16 +47,17 @@ public:
     {
         return "Remove Constant GEP Expressions";
     }
-    virtual bool runOnModule (Module & M);
+    virtual bool runOnModule(Module& M);
 };
-
 
 //
 // Pass: MergeFunctionRets
 //
 // Description:
-//  This pass modifies a function so that each function only have one unified exit basic block
+//  This pass modifies a function so that each function only have one unified
+//  exit basic block
 //
+/*
 class MergeFunctionRets : public ModulePass
 {
 private:
@@ -65,29 +72,36 @@ public:
     {
         return "unify function exit into one dummy exit basic block";
     }
-    virtual bool runOnModule (Module & M)
+    virtual bool runOnModule(Module& M)
     {
         UnifyFunctionExit(M);
         return true;
     }
+    void getAnalysisUsage(llvm::AnalysisUsage& AU) const override
+    {
+        AU.addRequired<UnifyFunctionExitNodes>();
+    }
+
     inline void UnifyFunctionExit(Module& module)
     {
-        for (Module::const_iterator iter = module.begin(), eiter = module.end();
-                iter != eiter; ++iter)
+
+        // Set up a FunctionAnalysisManager for running the new pass
+        llvm::FunctionAnalysisManager FAM;
+
+        // Register required analyses for the FunctionAnalysisManager
+        llvm::PassBuilder PB;
+        PB.registerFunctionAnalyses(FAM);
+        for (Function& F : module)
         {
-            const Function& fun = *iter;
-            if(fun.isDeclaration())
+            if (F.isDeclaration())
                 continue;
-            getUnifyExit(fun)->runOnFunction(const_cast<Function&>(fun));
+            UnifyFunctionExitNodes& AnalysisPass =
+                getAnalysis<UnifyFunctionExitNodes>();
+            AnalysisPass.run(F, FAM);
         }
     }
-    /// Get Unified Exit basic block node
-    inline UnifyFunctionExitNodes* getUnifyExit(const Function& fn)
-    {
-        assert(!fn.isDeclaration() && "external function does not have DF");
-        return &getAnalysis<UnifyFunctionExitNodes>(const_cast<Function&>(fn));
-    }
 };
+*/
 
 } // End namespace SVF
 
